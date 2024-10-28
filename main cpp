@@ -1,0 +1,100 @@
+#include <Adafruit_Sensor.h>
+
+#include <DHT.h>
+#include <DHT_U.h>
+#include <Adafruit_Sensor.h>
+
+#include "DHT.h"
+#include <LiquidCrystal.h>
+
+// DHT Sensor setup
+#define DHTPIN 2      // Pin connected to DHT sensor
+#define DHTTYPE DHT22 // DHT 22 (AM2302)
+DHT dht(DHTPIN, DHTTYPE); // Initialize DHT sensor
+
+// Pulse Sensor setup
+const int PULSE_SENSOR_PIN = A0; // 'S' Signal pin connected to A0
+int Signal;                      // Store incoming ADC data
+int Threshold = 200;            // Threshold for heartbeat detection
+int heartRate = 0;              // Variable to store heart rate
+int beatCount = 0;              // Count beats
+unsigned long lastBeatTime = 0; // Last time a beat was detected
+unsigned long startTime;        // Start time for heart rate calculation
+
+// LCD setup
+const int rs = 12, en = 11, d4 = 6, d5 = 5, d6 = 4, d7 = 3;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+// Variables for DHT
+float hum;  // Stores humidity value
+float temp; // Stores temperature value
+
+void setup() {
+    // Initialize DHT sensor
+    Serial.begin(9600);
+    dht.begin();
+
+    // Initialize LCD
+    lcd.begin(16, 2); // Set up the LCD's number of columns and rows
+    lcd.print(" 16 X 2 LCD "); // Print initial message
+    delay(2000); // Wait for 2 seconds
+    lcd.clear(); // Clear the LCD for new output
+
+    // Initialize the start time for heart rate calculation
+    startTime = millis();
+}
+
+void loop() {
+    // Read temperature and humidity
+    hum = dht.readHumidity();
+    temp = dht.readTemperature();
+
+    // Check if readings are valid
+    if (isnan(hum) || isnan(temp)) {
+        Serial.println("Failed to read from DHT sensor!");
+        return; // Skip the rest of the loop if readings are invalid
+    }
+
+    // Print to Serial
+    Serial.print("Humidity: ");
+    Serial.print(hum);
+    Serial.print(" %, Temp: ");
+    Serial.print(temp);
+    Serial.print(" Celsius, Heart Rate: ");
+    Serial.print(Signal);
+    Serial.println(" bpm");
+
+    // Update LCD with temperature and humidity if values have changed
+    static float lastHum = -1, lastTemp = -1;
+    if (hum != lastHum) {
+        lcd.setCursor(4, 0);
+        lcd.print(hum);
+        lastHum = hum;
+    }
+    if (temp != lastTemp) {
+        lcd.setCursor(4, 1);
+        lcd.print(temp);
+        lastTemp = temp;
+    }
+
+    // Read pulse sensor value
+    Signal = analogRead(PULSE_SENSOR_PIN); // Read the sensor value
+    //Serial.println(Signal);                // Send the signal value to serial plotter
+
+    // Check for heartbeats
+    if (Signal > Threshold) {  
+      Serial.print("Heart beats.....");
+    }else{
+      Serial.print("Heart Not Beats..");
+    }
+    // Display heart rate on LCD
+    lcd.setCursor(0, 0);
+    lcd.print(temp);
+    lcd.setCursor(0, 1);
+    lcd.print("HR: ");
+    lcd.print(Signal);
+    //lcd.print(" bpm  ");
+    
+    
+    delay(2000); // Short delay for stability
+}
