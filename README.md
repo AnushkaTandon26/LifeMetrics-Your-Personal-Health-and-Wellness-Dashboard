@@ -18,7 +18,7 @@ Components
  Wiring
 
 - DHT22 Sensor: Connect to a digital pin (pin 2 in the code).
-- **Pulse Sensor: Connect the signal pin to analog pin A0.
+- Pulse Sensor: Connect the signal pin to analog pin A0.
 - LCD: Connect as per the LCD’s pin configuration, matching the digital pins (pins 3 to 6, 11, and 12 in the code).
 
 Code Overview
